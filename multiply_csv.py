@@ -1,8 +1,6 @@
 import csv
 import sys
 
-import consts
-
 def change_values(filename, multiply_val : list[int]):
 
     with open(filename, "r") as csvfile:
@@ -25,5 +23,5 @@ def change_values(filename, multiply_val : list[int]):
 
 if __name__ == '__main__':
     assert len(sys.argv) == 2
-    multiply_val = [1.1, 0.1, 1.8, 1.1, 1, 1.5]
+    multiply_val = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     change_values(sys.argv[1], multiply_val)
