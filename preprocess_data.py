@@ -7,6 +7,22 @@ from dostoevsky.models import FastTextSocialNetworkModel
 tokenizer = RegexTokenizer()
 model = FastTextSocialNetworkModel(tokenizer=tokenizer)
 
+def date_range(start_date, end_date):
+    delta = timedelta(days=1)
+
+    weeks = []
+    while start_date <= end_date:
+        if start_date.weekday() != 0:
+            start_date += delta
+            continue
+
+        last_day_of_week = min(start_date + timedelta(days=6), end_date)
+        weeks.append((start_date, last_day_of_week))
+        start_date += timedelta(days=7)
+
+    return weeks
+
+
 def load_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = list(csv.DictReader(csvfile))
@@ -27,23 +43,7 @@ def save_csv(file_path, stats_list):
             ])
 
         for week_start, week_end, period_stats in stats_list:
-            # writer.writerow([week_start, week_end] + list(period_stats.values()))
             writer.writerow(list(period_stats.values()))
-
-
-def get_period_start_end_dates(data):
-    start_date = min(datetime.strptime(row["Date"], "%Y-%m-%d %H:%M:%S").date() for row in data)
-    end_date = max(datetime.strptime(row["Date"], "%Y-%m-%d %H:%M:%S").date() for row in data)
-
-    current_date = start_date
-    period_ranges = []
-    while current_date <= end_date:
-        period_start = current_date
-        period_end = current_date + timedelta(days=6)
-        period_ranges.append((period_start, period_end))
-        current_date = period_end + timedelta(days=1)
-
-    return period_ranges
 
 
 def get_sentiment_score(message):
@@ -76,9 +76,9 @@ def weekly_stats(data, period_start, period_end, user_email):
 
     for row in data:
         date_obj = datetime.strptime(row["Date"], "%Y-%m-%d %H:%M:%S")
-        if period_start <= date_obj.date() <= period_end:
-            total_count += 1
+        if period_start.date() <= date_obj.date() <= period_end.date():
             if row["From"] == user_email:
+                total_count += 1
                 stats["sent_msgs_count"] += 1
                 stats["out_msgs_text_len"] += len(row["Body"])
                 if not (workday_start <= date_obj.time() <= workday_end) or date_obj.weekday() >= 5:
@@ -88,6 +88,7 @@ def weekly_stats(data, period_start, period_end, user_email):
                     answered_subjects.add(row["Subject"][4:].strip())
                 stats["sent_sentiment_score"] += get_sentiment_score(row["Body"])
             elif row["To"] == user_email:
+                total_count += 1
                 stats["received_sentiment_score"] += get_sentiment_score(row["Body"])
 
 
@@ -99,15 +100,23 @@ def weekly_stats(data, period_start, period_end, user_email):
     for row in data:
         if row["To"] == user_email:
             date_obj = datetime.strptime(row["Date"], "%Y-%m-%d %H:%M:%S")
-            if period_start <= date_obj.date() <= period_end:
+            if period_start.date() <= date_obj.date() <= period_end.date():
                 if "?" in row["Body"] and row["Subject"] not in answered_subjects:
                     stats["unanswered_qstn_msgs"] += 1
 
     return stats
 
-def get_stats(file_path, output_csv1, output_csv2, date1, date2, user_email):
+def get_stats(
+        file_path,
+        output_csv1,
+        output_csv2,
+        start_date1,
+        end_date1,
+        start_date2,
+        end_date2,
+        user_email):
     data = load_csv(file_path)
-    period_ranges = get_period_start_end_dates(data)
+    period_ranges = date_range(start_date1, end_date1) + date_range(start_date2, end_date2)
 
     weekly_stats_list1 = []
     weekly_stats_list2 = []
@@ -115,10 +124,10 @@ def get_stats(file_path, output_csv1, output_csv2, date1, date2, user_email):
     for start, end in period_ranges:
         stats = weekly_stats(data, start, end, user_email)
 
-        if date1.date() <= end and start <= date2.date():
-            weekly_stats_list2.append((start, end, stats))
-        else:
+        if start_date1 <= start <= end_date1:
             weekly_stats_list1.append((start, end, stats))
+        elif start_date2 <= start <= end_date2:
+            weekly_stats_list2.append((start, end, stats))
 
     save_csv(output_csv1, weekly_stats_list1)
     save_csv(output_csv2, weekly_stats_list2)
