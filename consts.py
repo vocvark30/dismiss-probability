@@ -4,5 +4,7 @@ coefficients = {
     'out_msgs_text_len':    0.4,
     'out_workday_msgs':     0.8,
     'recv_sent_ratio':      -0.2,
-    'unanswered_qstn_msgs': -1.0
+    'unanswered_qstn_msgs': -1.0,
+    'sent_sentiment_score': 1.5,
+    'received_sentiment_score': 2.0,
 }
