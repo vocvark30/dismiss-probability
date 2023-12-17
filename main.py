@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 
 import preprocess_data
 import probability
@@ -28,21 +29,7 @@ def users_probability(
         )
 
         probabilities.append(probability.probability(output_csv1, output_csv2))
+        os.remove(output_csv1)
+        os.remove(output_csv2)
 
     return probabilities
-
-
-if __name__ == '__main__':
-    p = users_probability(
-        'data/data.csv',
-        [
-            'ivan.ivanov@example.com',
-            'olga.smirnova@example.com',
-        ],
-        datetime.strptime('01.10.2022', "%d.%m.%Y"),
-        datetime.strptime('11.12.2022', "%d.%m.%Y"),
-        datetime.strptime('12.12.2022', "%d.%m.%Y"),
-        datetime.strptime('27.01.2023', "%d.%m.%Y"),
-    )
-
-    print(f'Probabilities = {p}')

@@ -40,7 +40,7 @@ def replace_outliers_with_mean_no_outliers(df, k=2):
     return cleaned_df
 
 # Функция преобразования x ~ N(0, 1) в величину отклонения
-def f1(x):
+def weighted_deviation(x):
     alpha = 0.16
     return alpha * x**2 * (1 if x > 0 else -1)
 
@@ -69,7 +69,7 @@ def probability(csv_name1, csv_name2, debug=False):
     final_statistics = 0.0
 
     for name, k in consts.coefficients.items():
-        f_x = f1(normal_deviation[name])
+        f_x = weighted_deviation(normal_deviation[name])
         final_statistics += f_x * k
 
         if debug:
@@ -80,4 +80,3 @@ def probability(csv_name1, csv_name2, debug=False):
 
     # Чем больше значение статистики, тем меньше вероятность
     return sigmoid(-final_statistics)
-
