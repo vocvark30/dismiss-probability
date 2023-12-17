@@ -1,4 +1,5 @@
 # Система прогнозирования увольнения сотрудников
+<img width="881" alt="Screenshot 2023-12-17 at 20 30 54" src="https://github.com/vocvark30/dismiss-probability/assets/107685702/601beb25-ff67-4ed5-a202-940552b947b1">
 
 ## Обзор
 
